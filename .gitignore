@@ -1,0 +1,6 @@
+models
+gif_results
+data
+__pycache__
+gif.py
+training_samples
