@@ -3,7 +3,7 @@ PyTorch implementation of the Masked Autoencoder for Distribution Estimation (MA
 
 We are able to reproduce the results of [1] on MNIST in terms of negative log-likelihood and sample quality using a single-layer autoencoder with 500 hidden units. 
 
-The animation below shows generated digits (randomly sampled using a fixed seed) from the model during training for $K=0,1,...,75$ epochs using the natural ordering of the inputs to the network:
+The animation below shows generated digits (randomly sampled using a fixed seed) from the model during training for `K=0,1,...,75` epochs using the natural ordering of the inputs to the network:
 
 <p align="center">
   <img src ="https://github.com/e-hulten/made/blob/master/gifs/model_500.gif">
