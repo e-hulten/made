@@ -193,3 +193,4 @@ class MADECompanion(nn.Module):
             mask = next(mask_iter)
             layer.initialise_mask(mask)
             companion.initialise_mask(mask)
+

@@ -1,6 +1,6 @@
 models
 gif_results
+results
 data
 __pycache__
 gif.py
-training_samples
