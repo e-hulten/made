@@ -9,7 +9,7 @@ The animation below shows generated digits (randomly sampled using a fixed seed)
   <img src ="https://github.com/e-hulten/made/blob/master/gifs/model_500.gif">
 </p>
 
-The next figure shows reconstructed digits from the test set using the same one hidden layer network:
+The next figure shows reconstructed digits from the test set using the same one hidden layer network. The middle row shows the actual reconstructions, i.e., the outputs of the MADE with the images in the top row as inputs. The bottom row shows reconstructions in the sense that the pixels are sampled from the conditional Bernoulli distributions defined by the reconstructions in the middle row, hence the noisiness of the bottom row. 
 
 <p align="center">
   <img src ="https://github.com/e-hulten/made/blob/master/reconstruct/reconstruct_75_epochs.png">
