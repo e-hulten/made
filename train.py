@@ -13,7 +13,7 @@ from utils import train_one_epoch, sample_digits, sample_best, test
 # --------- parameters ----------
 load_model = False
 n_in = 784
-hidden_dims = [500]
+hidden_dims = [1024]
 lr = 1e-3
 epochs = 75
 seed = 19

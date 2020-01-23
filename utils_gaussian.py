@@ -3,8 +3,10 @@ from torch.nn import functional as F
 from torch.distributions import Bernoulli
 from torchvision.utils import save_image
 import matplotlib.pyplot as plt
+import seaborn as sns
 import os
 import numpy as np
+import pandas as pd
 import math
 
 from mnist import (
@@ -40,6 +42,7 @@ def train_one_epoch_gaussian(model, epoch, optimizer, scheduler=None):
 
     avg_loss = train_loss / len(train_loader_mnist.dataset)
     print("Epoch: {} Average loss: {:.5f}".format(epoch, avg_loss))
+    return avg_loss
 
 
 def val_gaussian(model, tot_epochs):
@@ -63,6 +66,7 @@ def val_gaussian(model, tot_epochs):
 
         val_loss /= len(val_loader_mnist.dataset)
         print("Validation loss: {:.4f}".format(val_loss))
+    return val_loss
 
 
 def test_gaussian(model, tot_epochs, plot=False):
@@ -135,6 +139,40 @@ def sample_digits_gaussian(model, epoch, random_order=False, seed=None, test=Fal
 
     fig.subplots_adjust(wspace=-0.35, hspace=0.065)
     plt.gca().set_axis_off()
+    plt.savefig(
+        save_path, dpi=300, bbox_inches="tight", pad_inches=0,
+    )
+    plt.close()
+
+
+def plot_losses(epochs, train_losses, val_losses, title=None):
+    sns.set(style="white")
+    df = pd.DataFrame({"Epoch": epochs, "Train": train_losses, "Val": val_losses})
+    df["Train"] = df["Train"].astype(float)
+    df["Val"] = df["Val"].astype(float)
+    print(df)
+    fig, axes = plt.subplots(
+        ncols=1, nrows=1, figsize=[13, 6], sharey=True, sharex=True, dpi=400
+    )
+    axes = sns.lineplot(
+        x="Epoch",
+        y="value",
+        hue="",
+        data=pd.melt(df, ["Epoch"]).rename(columns={"variable": ""}),
+        palette="tab10",
+    )
+    axes.set_ylabel("Loss")
+    axes.legend(
+        frameon=False,
+        prop={"size": 14},
+        fancybox=False,
+        handletextpad=0.5,
+        handlelength=1,
+    )
+    axes.set_ylim(1350, 2100)
+    axes.set_title(title) if title is not None else axes.set_title(None)
+
+    save_path = "results/train_plots" + str(epochs[-1]) + ".pdf"
     plt.savefig(
         save_path, dpi=300, bbox_inches="tight", pad_inches=0,
     )

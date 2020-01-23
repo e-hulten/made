@@ -4,6 +4,7 @@ import numpy as np
 import gzip
 import pickle
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 """ 
 This is a version of: https://github.com/gpapamak/maf/blob/master/datasets/mnist.py, 
@@ -15,7 +16,7 @@ batch_size = 128
 
 class MNIST:
 
-    alpha = 1.0e-6
+    alpha = 1e-6
 
     class Data:
         """
@@ -49,13 +50,13 @@ class MNIST:
         root = "data/maf_data/"
         # load dataset
         f = gzip.open(root + "mnist/mnist.pkl.gz", "rb")
-        trn, val, tst = pickle.load(f, encoding="latin1")
+        train, val, test = pickle.load(f, encoding="latin1")
         f.close()
 
         rng = np.random.RandomState(42)
-        self.train = self.Data(trn, logit, dequantize, rng)
+        self.train = self.Data(train, logit, dequantize, rng)
         self.val = self.Data(val, logit, dequantize, rng)
-        self.test = self.Data(tst, logit, dequantize, rng)
+        self.test = self.Data(test, logit, dequantize, rng)
 
         self.n_dims = self.train.x.shape[1]
         self.image_size = [int(np.sqrt(self.n_dims))] * 2
@@ -79,7 +80,9 @@ class MNIST:
 
         n_bins = int(np.sqrt(data_split.N))
         fig, ax = plt.subplots(1, 1)
-        ax.hist(data, n_bins, normed=True)
+        ax.hist(data, n_bins, density=True, color="lightblue")
+        ax.set_yticklabels("")
+        ax.set_yticks([])
         plt.show()
 
 
@@ -91,3 +94,4 @@ test = torch.from_numpy(data.test.x)
 train_loader = torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True,)
 val_loader = torch.utils.data.DataLoader(val, batch_size=batch_size, shuffle=True,)
 test_loader = torch.utils.data.DataLoader(test, batch_size=batch_size, shuffle=True,)
+
