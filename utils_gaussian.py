@@ -16,31 +16,26 @@ from mnist import (
 )
 
 
-def train_one_epoch_gaussian(model, epoch, optimizer, scheduler=None):
+def train_one_epoch_gaussian(model, epoch, optimizer):
     model.train()
     train_loss = 0
-    for idx, batch in enumerate(train_loader_mnist):
-        optimizer.zero_grad()
-
+    for batch in train_loader_mnist:
         batch = batch.reshape(-1, 28 * 28)
         out = model.forward(batch.float())
-        mu, alpha = torch.chunk(out.clone(), 2, dim=1)
-        u = (batch - mu) / torch.exp(alpha)
+        mu, alpha = torch.chunk(out, 2, dim=1)
+        u = (batch - mu) * torch.exp(-alpha)
 
-        negloglik_loss = 0.5 * (u * u).sum(dim=1)
-        negloglik_loss += (
-            0.5 * batch.shape[1] * torch.log(torch.from_numpy(np.array(2 * np.pi)))
-        )
-        negloglik_loss += alpha.sum(dim=1)
-        negloglik_loss = torch.sum(negloglik_loss)
+        negloglik_loss = 0.5 * (u ** 2).sum(dim=1)
+        negloglik_loss += 0.5 * batch.shape[1] * np.log(2 * math.pi)
+        negloglik_loss += torch.sum(alpha, dim=1)
+        negloglik_loss = torch.mean(negloglik_loss)
 
+        optimizer.zero_grad()
         negloglik_loss.backward()
         train_loss += negloglik_loss.item()
         optimizer.step()
-        if scheduler is not None:
-            scheduler.step(epoch)
 
-    avg_loss = train_loss / len(train_loader_mnist.dataset)
+    avg_loss = train_loss / len(train_loader_mnist)
     print("Epoch: {} Average loss: {:.5f}".format(epoch, avg_loss))
     return avg_loss
 
@@ -48,48 +43,48 @@ def train_one_epoch_gaussian(model, epoch, optimizer, scheduler=None):
 def val_gaussian(model, tot_epochs):
     model.eval()
     val_loss = 0
+    val_loss = []
     with torch.no_grad():
-        for idx, batch in enumerate(val_loader_mnist):
-            batch = batch.view(-1, 784)
+        for batch in val_loader_mnist:
+            batch = batch.reshape(-1, 28 * 28)
             out = model.forward(batch.float())
+
             mu, alpha = torch.chunk(out.clone(), 2, dim=1)
-            u = (batch - mu) / torch.exp(alpha)
+            u = (batch - mu) * torch.exp(-alpha)
 
-            negloglik_loss = 0.5 * (u * u).sum(dim=1)
-            negloglik_loss += (
-                0.5 * batch.shape[1] * torch.log(torch.from_numpy(np.array(2 * np.pi)))
-            )
-            negloglik_loss += alpha.sum(dim=1)
-            negloglik_loss = torch.sum(negloglik_loss)
+            negloglik_loss = 0.5 * (u ** 2).sum(dim=1)
+            negloglik_loss += 0.5 * batch.shape[1] * np.log(2 * math.pi)
+            negloglik_loss += torch.sum(alpha, dim=1)
 
-            val_loss += negloglik_loss
+            val_loss.extend(negloglik_loss)
 
-        val_loss /= len(val_loader_mnist.dataset)
-        print("Validation loss: {:.4f}".format(val_loss))
-    return val_loss
+    print("Validation loss: {:.4f}".format(np.mean(val_loss)))
+    return np.mean(val_loss)
 
 
 def test_gaussian(model, tot_epochs, plot=False):
     model.eval()
-    test_loss = 0
+    test_loss = []
     with torch.no_grad():
         for idx, batch in enumerate(test_loader_mnist):
-            batch = batch.view(-1, 784)
+            batch = batch.reshape(-1, 28 * 28)
             out = model.forward(batch.float())
+
             mu, alpha = torch.chunk(out.clone(), 2, dim=1)
-            u = (batch - mu) / torch.exp(alpha)
+            u = (batch - mu) * torch.exp(-alpha)
 
-            negloglik_loss = 0.5 * (u * u).sum(dim=1)
-            negloglik_loss += (
-                0.5 * batch.shape[1] * torch.log(torch.from_numpy(np.array(2 * np.pi)))
-            )
-            negloglik_loss += alpha.sum(dim=1)
-            negloglik_loss = torch.sum(negloglik_loss)
+            negloglik_loss = 0.5 * (u ** 2).sum(dim=1)
+            negloglik_loss += 0.5 * batch.shape[1] * np.log(2 * math.pi)
+            negloglik_loss += torch.sum(alpha, dim=1)
 
-            test_loss += negloglik_loss
-
-        test_loss /= len(test_loader_mnist.dataset)
-        print("Test loss: {:.4f}".format(test_loss))
+            test_loss.extend(negloglik_loss)
+    print(np.max(test_loss))
+    N = len(test_loss)
+    print(
+        "Test loss: {:.4f} +/- {:.4f}".format(
+            np.mean(test_loss), 2 * np.std(test_loss) / np.sqrt(N)
+        )
+    )
 
 
 def sample_digits_gaussian(model, epoch, random_order=False, seed=None, test=False):

@@ -11,7 +11,7 @@ This is a version of: https://github.com/gpapamak/maf/blob/master/datasets/mnist
 adapted to work with Python 3.x and PyTorch. 
 """
 
-batch_size = 128
+batch_size = 100
 
 
 class MNIST:
@@ -46,8 +46,8 @@ class MNIST:
             x = MNIST.alpha + (1 - 2 * MNIST.alpha) * x
             return np.log(x / (1.0 - x))
 
-    def __init__(self, logit=False, dequantize=True):
-        root = "data/maf_data/"
+    def __init__(self, logit=True, dequantize=True):
+        root = "../maf/data/maf_data/"
         # load dataset
         f = gzip.open(root + "mnist/mnist.pkl.gz", "rb")
         train, val, test = pickle.load(f, encoding="latin1")
@@ -91,7 +91,7 @@ train = torch.from_numpy(data.train.x)
 val = torch.from_numpy(data.val.x)
 test = torch.from_numpy(data.test.x)
 
-train_loader = torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True,)
-val_loader = torch.utils.data.DataLoader(val, batch_size=batch_size, shuffle=True,)
-test_loader = torch.utils.data.DataLoader(test, batch_size=batch_size, shuffle=True,)
+train_loader = torch.utils.data.DataLoader(train, batch_size=batch_size,)
+val_loader = torch.utils.data.DataLoader(val, batch_size=batch_size,)
+test_loader = torch.utils.data.DataLoader(test, batch_size=batch_size,)
 

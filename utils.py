@@ -8,7 +8,7 @@ import numpy as np
 import math
 
 from data import train_loader, val_loader, test_loader
-from mnist import train_loader, testloader as train_loader_mnist, test_loader_mnist
+from mnist import train_loader, test_loader as train_loader_mnist, test_loader_mnist
 
 
 def train_one_epoch(model, epoch, optimizer, scheduler=None):

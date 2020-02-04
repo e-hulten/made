@@ -19,16 +19,16 @@ n_in = 784
 hidden_dims = [1024]
 lr = 1e-3  # try 1e-4 !!!
 epochs = 200
-seed = 19
+seed = 876
 random_order = False
 # -------------------------------
 
-model = MADE(n_in, hidden_dims, random_order=random_order, seed=seed, gaussian=True)
+model = MADE(n_in, hidden_dims, random_order=False, seed=seed, gaussian=True)
 print(
     "Number of model parameters:", sum([np.prod(p.size()) for p in model.parameters()])
 )
+
 optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-6)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
 
 string = ""
 for i in range(len(hidden_dims)):
@@ -55,11 +55,11 @@ val_losses = []
 
 for epoch in range(tot_epochs + 1, tot_epochs + epochs + 1):
     epochs_list.append(epoch)
-    train_loss = train_one_epoch_gaussian(model, epoch, optimizer, scheduler=scheduler)
+    train_loss = train_one_epoch_gaussian(model, epoch, optimizer)
     train_losses.append(train_loss)
-    sample_digits_gaussian(model, epoch, random_order=random_order, seed=seed)
+    # sample_digits_gaussian(model, epoch, random_order=random_order, seed=seed)
     val_loss = val_gaussian(model, epoch)
-    val_losses.append(val_loss.numpy())
+    val_losses.append(val_loss)
     if val_loss < max_loss:
         max_loss = val_loss
         i = 0
