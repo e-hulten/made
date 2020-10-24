@@ -1,4 +1,4 @@
-from .mnist import MNIST
+from .mnist import MNIST, BinarisedMNIST
 
-__all__ = ["MNIST"]
+__all__ = ["MNIST", "BinarisedMNIST"]
 

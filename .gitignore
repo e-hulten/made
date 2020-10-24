@@ -5,3 +5,6 @@ __pycache__
 gif.py
 data/maf_data
 binarized_mnist.npz
+test
+test.py
+test_gaussian.py

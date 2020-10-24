@@ -4,14 +4,45 @@ import numpy as np
 import gzip
 import pickle
 import matplotlib.pyplot as plt
+import urllib
+from typing import Tuple
+from torch import Tensor
 
-""" 
-This is a version of: https://github.com/gpapamak/maf/blob/master/datasets/mnist.py, 
-adapted to work with Python 3.x and PyTorch. 
-"""
+
+class BinarisedMNIST:
+    def __init__(self, download: bool = False) -> None:
+        """Initialise BinarisedMNIST by loading the dataset.
+        
+        Args:
+            download: Whether to download the dataset. 
+        """
+        self.path = "data/binarized_mnist.npz"
+        if download:
+            self._get_dataset()
+
+        self.bmnist = np.load(self.path)
+
+    def get_data_splits(self) -> Tuple[Tensor]:
+        """Return train, validation, and test set as tensors."""
+        train = torch.from_numpy(self.bmnist["train_data"])
+        val = torch.from_numpy(self.bmnist["valid_data"])
+        test = torch.from_numpy(self.bmnist["test_data"])
+        return train, val, test
+
+    def _get_dataset(self) -> None:
+        """Internal method to download the binarized MNIST."""
+        with urllib.URLopener() as downloader:
+            url = "https://github.com/mgermain/MADE/releases/download/ICML2015/binarized_mnist.npz"
+            dowloader.retrieve(url, self.path)
+        print("Binarized MNIST successfully downloaded!")
 
 
 class MNIST:
+    """ 
+    This is a version of: https://github.com/gpapamak/maf/blob/master/datasets/mnist.py, 
+    adapted to work with Python 3.x and PyTorch. 
+    """
+
     class Dataset:
         def __init__(self, data, logit, dequantize, rng):
             self.alpha = 1e-6

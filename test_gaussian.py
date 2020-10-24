@@ -17,3 +17,4 @@ checkpoint = torch.load("models/model_gaussian_1024.pt")
 model.load_state_dict(checkpoint["model_state_dict"])
 
 test_gaussian(model, 0)
+

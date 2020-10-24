@@ -1,76 +1,30 @@
 import torch
-from torch.nn import functional as F
-from torch.distributions import Bernoulli
-from torchvision.utils import save_image
-import matplotlib.pyplot as plt
-import os
 import numpy as np
-import math
+import os
+import matplotlib.pyplot as plt
 
 
-def train_one_epoch(model, train_loader, epoch, optimizer, scheduler=None):
-    model.train()
-    train_loss = 0
-    for batch in train_loader:
-        optimizer.zero_grad()
+def plot_training_samples(batch, ncol=10, nrow=2):
+    tr_samples = batch.view(len(batch), 28, 28)
 
-        batch = batch.reshape(-1, 28 * 28).float()
-        x_hat = model.forward(batch)
+    fig, axes = plt.subplots(ncols=ncol, nrows=nrow, figsize=(15, 3))
+    ax = axes.ravel()
+    for i in range(ncol * nrow):
+        ax[i].imshow(np.transpose(tr_samples[i], (0, 1)), cmap="gray")
+        ax[i].axis("off")
+        ax[i].set_xticklabels([])
+        ax[i].set_yticklabels([])
+        ax[i].set_frame_on(False)
+    fig.subplots_adjust(wspace=0.05, hspace=0)
+    plt.gca().set_axis_off()
 
-        binary_loss = F.binary_cross_entropy(
-            x_hat, batch.reshape(-1, 28 * 28), reduction="sum"
-        )
+    if not os.path.exists("training_samples"):
+        os.makedirs("training_samples")
+    save_path = "training_samples/samples.pdf"
 
-        binary_loss.backward()
-        loss = binary_loss.item()
-        train_loss += loss
-        optimizer.step()
-        if scheduler:
-            scheduler.step(epoch)
-
-    avg_loss = train_loss / len(train_loader.dataset)
-    print("Epoch: {} Average loss: {:.5f}".format(epoch, avg_loss))
-
-
-def val(model, tot_epochs, plot=False):
-    model.eval()
-    test_loss = 0
-    with torch.no_grad():
-        for idx, batch in enumerate(val_loader):
-            batch = batch.view(-1, 784)
-            x_hat = model(batch)
-            binary_loss = F.binary_cross_entropy(
-                x_hat, batch.reshape(-1, 784), reduction="sum"
-            )
-            val_loss += binary_loss
-            if plot is True:
-                if idx == 50:
-                    plot_comparison(batch, x_hat, tot_epochs, num_samples=10)
-
-        val_loss /= len(val_loader.dataset)
-        print("Validation loss: {:.4f}".format(val_loss))
-
-
-def test(model, tot_epochs):
-    model.eval()
-    test_loss = 0
-    with torch.no_grad():
-        for idx, batch in enumerate(test_loader):
-            batch = batch.view(-1, 784)
-            x_hat = model(batch)
-            binary_loss = F.binary_cross_entropy(
-                x_hat, batch.reshape(-1, 784), reduction="sum"
-            )
-            test_loss += binary_loss
-            if plot is True:
-                if idx == 50:
-                    plot_comparison(batch, x_hat, tot_epochs, num_samples=10)
-                    plot_comparison_one_row(
-                        batch, x_hat, tot_epochs,
-                    )
-
-        test_loss /= len(test_loader.dataset)
-        print("Test loss: {:.4f}".format(test_loss))
+    plt.savefig(
+        save_path, dpi=300, bbox_inches="tight", pad_inches=0,
+    )
 
 
 def sample_digits(model, epoch, random_order=False, seed=None, test=False):
@@ -315,3 +269,57 @@ def plot_comparison_one_row(batch, x_hat, tot_epochs, num_samples=1):
     plt.savefig(
         save_path, dpi=300, bbox_inches="tight", pad_inches=0,
     )
+
+
+def sample_digits_gaussian(model, epoch, random_order=False, seed=None, test=False):
+    model.eval()
+    n_samples = 80
+    if seed is not None:
+        torch.manual_seed(seed)
+    if random_order is True:
+        np.random.seed(seed)
+        order = np.random.permutation(784)
+    else:
+        order = np.arange(784)
+
+    samples = torch.zeros(n_samples, 784)
+    # sample the first dimension of each vector
+    samples[:, order[0]] = torch.rand(n_samples)
+    eps = samples.clone().normal_(0, 1)
+    for _, dim in enumerate(order):
+        out = model(samples)
+        mu, alpha = torch.chunk(out.clone(), 2, dim=1)
+
+        x = mu[:, dim] + torch.exp(alpha[:, dim]) * eps[:, dim]
+
+        samples[:, dim] = x
+
+    samples = (torch.sigmoid(samples) - 1e-6) / (1 - 2e-6)
+
+    samples = samples.detach().cpu().view(n_samples, 28, 28)
+
+    fig, axes = plt.subplots(ncols=10, nrows=8)
+    ax = axes.ravel()
+    for i in range(80):
+        ax[i].imshow(
+            np.transpose(samples[i], (0, 1)), cmap="gray", interpolation="none"
+        )
+        ax[i].axis("off")
+        ax[i].set_xticklabels([])
+        ax[i].set_yticklabels([])
+        ax[i].set_frame_on(False)
+
+    if not os.path.exists("gif_results"):
+        os.makedirs("gif_results")
+    if test is False:
+        save_path = "gif_results/samples_gaussian_" + str(epoch) + ".pdf"
+    else:
+        save_path = "results/samples_gaussian_" + str(epoch) + ".pdf"
+
+    fig.subplots_adjust(wspace=-0.35, hspace=0.065)
+    plt.gca().set_axis_off()
+    plt.savefig(
+        save_path, dpi=300, bbox_inches="tight", pad_inches=0,
+    )
+    plt.close()
+

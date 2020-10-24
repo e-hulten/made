@@ -1,13 +1,14 @@
 import torch
-from torch.nn import functional as F
-from torchvision.utils import save_image
-from torch.distributions import Bernoulli
-import numpy as np
-import os
-
-from made import MADE, MADECompanion
+from made import MADE
+from data import MNIST
 from utils import test, sample_digits, sample_digits_half, sample_best
+from test import test_model_gaussian
 
+
+# Get datasets and train loaders.
+mnist = MNIST()
+_, _, test = mnist.get_data_splits()
+test_loader = torch.utils.data.DataLoader(test, batch_size=128, shuffle=True)
 
 # --------- parameters ----------
 n_in = 784
@@ -18,15 +19,13 @@ random_order = False
 
 model = MADE(n_in, hidden_dims, random_order=random_order, seed=seed, gaussian=False)
 
-string = ""
-for i in range(len(hidden_dims)):
-    string += "_" + str(hidden_dims[i])
+string = "_".join([str(h) for h in hidden_dims])
 
-checkpoint = torch.load("models/model" + string + ".pt")
+checkpoint = torch.load("model_saves/model" + string + ".pt")
 model.load_state_dict(checkpoint["model_state_dict"])
 tot_epochs = checkpoint["epoch"]
 
 # sample_digits(model, tot_epochs, random_order=random_order, test=True)
 # sample_best(model, tot_epochs)
-sample_digits_half(model, tot_epochs, random_order=random_order, test=True)
+# sample_digits_half(model, tot_epochs, random_order=random_order, test=True)
 test(model, tot_epochs, plot=True)
