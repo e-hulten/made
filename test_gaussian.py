@@ -1,6 +1,6 @@
 import torch
 
-from model import MADE
+from made import MADE
 from utils_gaussian import test_gaussian
 
 n_in = 784

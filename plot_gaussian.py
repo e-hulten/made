@@ -4,7 +4,7 @@ from torchvision.utils import save_image
 import numpy as np
 import os
 
-from model import MADE
+from made import MADE
 from utils_gaussian import (
     train_one_epoch_gaussian,
     val_gaussian,

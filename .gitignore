@@ -1,6 +1,7 @@
-models
+model_saves
 gif_results
 results
-data
 __pycache__
 gif.py
+data/maf_data
+binarized_mnist.npz

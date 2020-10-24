@@ -7,17 +7,14 @@ import os
 import numpy as np
 import math
 
-from data import train_loader, val_loader, test_loader
-from mnist import train_loader, test_loader as train_loader_mnist, test_loader_mnist
 
-
-def train_one_epoch(model, epoch, optimizer, scheduler=None):
+def train_one_epoch(model, train_loader, epoch, optimizer, scheduler=None):
     model.train()
     train_loss = 0
-    for idx, batch in enumerate(train_loader):
+    for batch in train_loader:
         optimizer.zero_grad()
 
-        batch = batch.reshape(-1, 28 * 28)
+        batch = batch.reshape(-1, 28 * 28).float()
         x_hat = model.forward(batch)
 
         binary_loss = F.binary_cross_entropy(
@@ -28,7 +25,7 @@ def train_one_epoch(model, epoch, optimizer, scheduler=None):
         loss = binary_loss.item()
         train_loss += loss
         optimizer.step()
-        if scheduler is not None:
+        if scheduler:
             scheduler.step(epoch)
 
     avg_loss = train_loss / len(train_loader.dataset)

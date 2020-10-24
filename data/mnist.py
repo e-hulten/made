@@ -4,27 +4,17 @@ import numpy as np
 import gzip
 import pickle
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 """ 
 This is a version of: https://github.com/gpapamak/maf/blob/master/datasets/mnist.py, 
 adapted to work with Python 3.x and PyTorch. 
 """
 
-batch_size = 100
-
 
 class MNIST:
-
-    alpha = 1e-6
-
-    class Data:
-        """
-        Constructs the dataset.
-        """
-
+    class Dataset:
         def __init__(self, data, logit, dequantize, rng):
-
+            self.alpha = 1e-6
             x = (
                 self._dequantize(data[0], rng) if dequantize else data[0]
             )  # dequantize pixels
@@ -38,28 +28,33 @@ class MNIST:
             """
             return x + rng.rand(*x.shape) / 256.0
 
-        @staticmethod
-        def _logit_transform(x):
+        def _logit_transform(self, x):
             """
             Transforms pixel values with logit to be unconstrained.
             """
-            x = MNIST.alpha + (1 - 2 * MNIST.alpha) * x
+            x = self.alpha + (1 - 2 * self.alpha) * x
             return np.log(x / (1.0 - x))
 
     def __init__(self, logit=True, dequantize=True):
         root = "../maf/data/maf_data/"
         # load dataset
-        f = gzip.open(root + "mnist/mnist.pkl.gz", "rb")
-        train, val, test = pickle.load(f, encoding="latin1")
-        f.close()
+        with gzip.open(root + "mnist/mnist.pkl.gz", "rb") as f:
+            train, val, test = pickle.load(f, encoding="latin1")
 
         rng = np.random.RandomState(42)
-        self.train = self.Data(train, logit, dequantize, rng)
-        self.val = self.Data(val, logit, dequantize, rng)
-        self.test = self.Data(test, logit, dequantize, rng)
+        self.train = self.Dataset(train, logit, dequantize, rng)
+        self.val = self.Dataset(val, logit, dequantize, rng)
+        self.test = self.Dataset(test, logit, dequantize, rng)
 
         self.n_dims = self.train.x.shape[1]
         self.image_size = [int(np.sqrt(self.n_dims))] * 2
+
+    def get_data_splits(self):
+        return (
+            torch.from_numpy(self.train.x),
+            torch.from_numpy(self.val.x),
+            torch.from_numpy(self.test.x),
+        )
 
     def show_pixel_histograms(self, split, pixel=None):
         """
@@ -67,12 +62,10 @@ class MNIST:
         """
 
         data_split = getattr(self, split, None)
-        if data_split is None:
+        if not data_split:
             raise ValueError("Invalid data split")
-
-        if pixel is None:
+        if not pixel:
             data = data_split.x.flatten()
-
         else:
             row, col = pixel
             idx = row * self.image_size[0] + col
@@ -84,14 +77,3 @@ class MNIST:
         ax.set_yticklabels("")
         ax.set_yticks([])
         plt.show()
-
-
-data = MNIST(logit=True, dequantize=True)
-train = torch.from_numpy(data.train.x)
-val = torch.from_numpy(data.val.x)
-test = torch.from_numpy(data.test.x)
-
-train_loader = torch.utils.data.DataLoader(train, batch_size=batch_size,)
-val_loader = torch.utils.data.DataLoader(val, batch_size=batch_size,)
-test_loader = torch.utils.data.DataLoader(test, batch_size=batch_size,)
-

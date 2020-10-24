@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-# download binarised mnist: https://github.com/mgermain/MADE/releases/download/ICML2015/binarized_mnist.npz
+# Download binarised mnist: https://github.com/mgermain/MADE/releases/download/ICML2015/binarized_mnist.npz
 # path to binarized_mnist.npz:
 path = "./data/binarized_mnist.npz"
 batch_size = 128

@@ -5,7 +5,7 @@ from torch.distributions import Bernoulli
 import numpy as np
 import os
 
-from model import MADE, MADECompanion
+from made import MADE, MADECompanion
 from utils import test, sample_digits, sample_digits_half, sample_best
 
 
